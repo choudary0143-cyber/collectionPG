@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance Status Dashboard</title>
+    <!-- Google Fonts for Roboto -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- jsPDF Library for PDF Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #2c3e50;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 900px;
+            text-align: center;
+        }
+
+        .logo {
+            margin-bottom: 20px;
+        }
+
+        .logo h1 {
+            font-size: 2em;
+            color: #3498db;
+            margin: 0;
+            font-weight: 700;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        input[type="month"],
+        input[type="password"],
+        input[type="tel"],
+        input[type="email"],
+        select,
+        input[type="number"][id="otp"] {
+            padding: 12px;
+            border: 1px solid #ecf0f1;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="date"]:focus,
+        input[type="month"]:focus,
+        input[type="password"]:focus,
+        input[type="tel"]:focus,
+        input[type="email"]:focus,
+        select:focus,
+        input[type="number"][id="otp"]:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+
+        input::placeholder {
+            color: #7f8c8d;
+        }
+
+        button {
+            background: linear-gradient(90deg, #3498db, #2980b9);
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: linear-gradient(90deg, #2980b9, #3498db);
+        }
+
+        button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Dashboard Specific Styling */
+        #dashboard-section h1 {
+            font-size: 1.8em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        #dashboard-section p {
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background-color: #ffffff;
+            border: 1px solid #ecf0f1;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background-color: #ffffff;
+        }
+
+        th, td {
+            border: 1px solid #ecf0f1;
+            padding: 12px;
+            text-align: left;
+            font-size: 0.95em;
+        }
+
+        th {
+            background-color: #3498db;
+            color: white;
+            font-weight: 500;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9fbfd;
+        }
+
+        tr:hover {
+            background-color: #ecf0f1;
+            transition: background-color 0.2s;
+        }
+
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s;
+        }
+
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+
+        #total {
+            font-weight: 700;
+            color: #2c3e50;
+            margin-top: 15px;
+            text-align: right;
+            font-size: 1.1em;
+        }
+
+        .filter-section {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .download-section {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .download-section button {
+            background-color: #008CBA;
+            padding: 10px 20px;
+            flex: 1;
+            min-width: 140px;
+            font-weight: 500;
+        }
+
+        .download-section button:hover {
+            background-color: #006d93;
+        }
+
+        .pdf-btn {
+            background-color: #ff6b35 !important;
+        }
+
+        .pdf-btn:hover {
+            background-color: #e55a2b !important;
+        }
+
+        .csv-btn {
+            background-color: #28a745 !important;
+        }
+
+        .csv-btn:hover {
+            background-color: #218838 !important;
+        }
+
+        #logout {
+            background-color: #7f8c8d;
+            margin-top: 20px;
+        }
+
+        #logout:hover {
+            background-color: #6c757d;
+        }
+
+        #otp-section {
+            margin-top: 20px;
+        }
+
+        #resend-otp {
+            background: none;
+            color: #3498db;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-top: 10px;
+            text-decoration: underline;
+        }
+
+        #resend-otp:disabled {
+            color: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                width: 90%;
+                padding: 20px;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            input, button, select, .link-section a {
+                font-size: 0.9em;
+            }
+
+            .filter-section, .download-section {
+                flex-direction: column;
+            }
+
+            .download-section button {
+                min-width: auto;
+                width: 100%;
+            }
+
+            th, td {
+                padding: 8px;
+                font-size: 0.85em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Section -->
+        <div id="login-section">
+            <div class="logo">
+                <h1>FinancePro</h1>
+            </div>
+            <h2>Sign In</h2>
+            <form id="login-form">
+                <input type="email" id="login-email" placeholder="Enter Email" required>
+                <input type="tel" id="login-number" placeholder="Enter Phone Number" required>
+                <input type="password" id="login-password" placeholder="Enter Password" required>
+                <button type="submit">Sign In</button>
+            </form>
+            <p style="color: #7f8c8d; font-size: 0.9em; margin-top: 10px;">
+                Please contact your administrator for login credentials.
+            </p>
+            <!-- OTP Section -->
+            <div id="otp-section" class="hidden">
+                <input type="number" id="otp" placeholder="Enter OTP" maxlength="6" required>
+                <button id="verify-otp">Verify OTP</button>
+                <button id="resend-otp" disabled>Resend OTP</button>
+                <p id="otp-message" style="color: #7f8c8d; font-size: 0.9em;"></p>
+                <p id="otp-timer" style="color: #7f8c8d; font-size: 0.9em;"></p>
+            </div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboard-section" class="hidden">
+            <h1>Finance Status Dashboard</h1>
+            <p>Track client payments and start dates.</p>
+            
+            <div class="card">
+                <h2>Add Entry</h2>
+                <form id="entry-form">
+                    <input type="text" id="name" placeholder="Client Name (e.g., Manikanta)" required>
+                    <input type="number" id="daily-payment" placeholder="Daily Payment (e.g., 500)" required>
+                    <input type="date" id="start-date" required>
+                    <button type="submit">Add</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>Entries</h2>
+                <div class="filter-section">
+                    <select id="filter-type">
+                        <option value="all">All Entries</option>
+                        <option value="daily">Daily</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="client">By Client</option>
+                    </select>
+                    <input type="date" id="filter-date" class="hidden">
+                    <input type="month" id="filter-month" class="hidden">
+                    <input type="text" id="filter-client" placeholder="Enter Client Name" class="hidden">
+                </div>
+                <table id="entries-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Daily Payment</th>
+                            <th>Start Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <div id="total"></div>
+            </div>
+
+            <div class="card download-section">
+                <button id="download-pdf" class="pdf-btn">Download PDF</button>
+                <button id="download-csv" class="csv-btn">Download CSV</button>
+            </div>
+
+            <button id="logout">Logout</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginForm = document.getElementById('login-form');
+            const loginSection = document.getElementById('login-section');
+            const dashboardSection = document.getElementById('dashboard-section');
+            const entryForm = document.getElementById('entry-form');
+            const entriesTableBody = document.querySelector('#entries-table tbody');
+            const totalElement = document.getElementById('total');
+            const logoutButton = document.getElementById('logout');
+            const filterType = document.getElementById('filter-type');
+            const filterDate = document.getElementById('filter-date');
+            const filterMonth = document.getElementById('filter-month');
+            const filterClient = document.getElementById('filter-client');
+            const downloadPdfButton = document.getElementById('download-pdf');
+            const downloadCsvButton = document.getElementById('download-csv');
+            const otpSection = document.getElementById('otp-section');
+            const otpInput = document.getElementById('otp');
+            const verifyOtpButton = document.getElementById('verify-otp');
+            const resendOtpButton = document.getElementById('resend-otp');
+            const otpMessage = document.getElementById('otp-message');
+            const otpTimer = document.getElementById('otp-timer');
+
+            let entries = JSON.parse(localStorage.getItem('financeEntries') || '[]');
+            let generatedOtp = null;
+            let phoneNumber = null;
+            let otpTimeout = null;
+
+            function saveEntries() {
+                localStorage.setItem('financeEntries', JSON.stringify(entries));
+            }
+
+            function loadEntries() {
+                entries = JSON.parse(localStorage.getItem('financeEntries') || '[]');
+                renderEntries(entries);
+            }
+
+            function renderEntries(entriesToRender) {
+                const filter = filterType.value;
+                let filteredEntries = entriesToRender;
+
+                if (filter === 'daily' && filterDate.value) {
+                    filteredEntries = entries.filter(entry => {
+                        const entryDate = new Date(entry.startDate);
+                        return entryDate.toISOString().split('T')[0] === filterDate.value;
+                    });
+                } else if (filter === 'monthly' && filterMonth.value) {
+                    const [year, month] = filterMonth.value.split('-');
+                    filteredEntries = entries.filter(entry => {
+                        const entryDate = new Date(entry.startDate);
+                        return entryDate.getFullYear() === parseInt(year) && 
+                               entryDate.getMonth() === parseInt(month) - 1;
+                    });
+                } else if (filter === 'client' && filterClient.value) {
+                    filteredEntries = entries.filter(entry => entry.name.toLowerCase().includes(filterClient.value.toLowerCase()));
+                }
+
+                entriesTableBody.innerHTML = '';
+                filteredEntries.forEach((entry, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td>${entry.name}</td><td>${entry.dailyPayment.toFixed(2)}</td><td>${entry.startDate}</td><td><button class="delete-btn" data-index="${index}">Delete</button></td>`;
+                    entriesTableBody.appendChild(row);
+                });
+
+                document.querySelectorAll('.delete-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const index = parseInt(e.target.getAttribute('data-index'));
+                        entries.splice(index, 1);
+                        saveEntries();
+                        renderEntries(entries);
+                        alert('Entry deleted successfully!');
+                    });
+                });
+
+                totalElement.textContent = '';
+            }
+
+            function validatePhoneNumber(number) {
+                const phoneRegex = /^[6-9]\d{9}$/;
+                return phoneRegex.test(number);
+            }
+
+            function validateEmail(email) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return emailRegex.test(email);
+            }
+
+            // Mock OTP generation and storage
+            function generateAndStoreOtp() {
+                generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+                localStorage.setItem('otp', generatedOtp);
+                localStorage.setItem('otpTimestamp', Date.now());
+                return generatedOtp;
+            }
+
+            // Start OTP timer
+            function startOtpTimer() {
+                let timeLeft = 300; // 5 minutes in seconds
+                otpTimer.textContent = `Time left: ${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}`;
+                resendOtpButton.disabled = true;
+
+                otpTimeout = setInterval(() => {
+                    timeLeft--;
+                    otpTimer.textContent = `Time left: ${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}`;
+                    if (timeLeft <= 0) {
+                        clearInterval(otpTimeout);
+                        otpMessage.textContent = 'OTP has expired. Please request a new one.';
+                        resendOtpButton.disabled = false;
+                        localStorage.removeItem('otp');
+                        localStorage.removeItem('otpTimestamp');
+                    }
+                }, 1000);
+            }
+
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const email = document.getElementById('login-email').value;
+                const number = document.getElementById('login-number').value.replace(/\D/g, '');
+                const password = document.getElementById('login-password').value;
+
+                let isValid = false;
+                if (email && validateEmail(email)) {
+                    isValid = password === '8073930143';
+                    phoneNumber = number || '9876543210'; // Fallback phone for testing
+                } else if (number && validatePhoneNumber(number)) {
+                    isValid = password === '8073930143';
+                    phoneNumber = number;
+                }
+
+                if (isValid) {
+                    // Simulate sending OTP
+                    generatedOtp = generateAndStoreOtp();
+                    otpMessage.textContent = `A 6-digit OTP has been sent to +91${phoneNumber}.`;
+                    loginForm.classList.add('hidden');
+                    otpSection.classList.remove('hidden');
+                    startOtpTimer();
+                } else {
+                    alert('Invalid email/phone number or password! Please contact your administrator for assistance.');
+                }
+            });
+
+            verifyOtpButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                const enteredOtp = otpInput.value;
+                const storedOtp = localStorage.getItem('otp');
+                const otpTimestamp = localStorage.getItem('otpTimestamp');
+                const timeElapsed = (Date.now() - otpTimestamp) / 1000;
+
+                if (timeElapsed > 300) {
+                    otpMessage.textContent = 'OTP has expired. Please request a new one.';
+                    resendOtpButton.disabled = false;
+                    return;
+                }
+
+                if (enteredOtp === storedOtp) {
+                    clearInterval(otpTimeout);
+                    otpSection.classList.add('hidden');
+                    loginSection.classList.add('hidden');
+                    dashboardSection.classList.remove('hidden');
+                    loadEntries();
+                    document.getElementById('login-email').value = '';
+                    document.getElementById('login-number').value = '';
+                    document.getElementById('login-password').value = '';
+                    otpInput.value = '';
+                    otpMessage.textContent = '';
+                    otpTimer.textContent = '';
+                    localStorage.removeItem('otp');
+                    localStorage.removeItem('otpTimestamp');
+                } else {
+                    otpMessage.textContent = 'Invalid OTP. Please try again.';
+                }
+            });
+
+            resendOtpButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (!resendOtpButton.disabled) {
+                    generatedOtp = generateAndStoreOtp();
+                    otpMessage.textContent = `A new OTP has been sent to +91${phoneNumber}.`;
+                    startOtpTimer();
+                    resendOtpButton.disabled = true;
+                }
+            });
+
+            entryForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('name').value;
+                const dailyPayment = parseFloat(document.getElementById('daily-payment').value);
+                const startDate = document.getElementById('start-date').value;
+
+                if (name && !isNaN(dailyPayment) && startDate) {
+                    entries.push({ name, dailyPayment, startDate });
+                    saveEntries();
+                    renderEntries(entries);
+                    document.getElementById('name').value = '';
+                    document.getElementById('daily-payment').value = '';
+                    document.getElementById('start-date').value = '';
+                    alert('Entry added successfully!');
+                } else {
+                    alert('Please fill all fields with valid data');
+                }
+            });
+
+            filterType.addEventListener('change', (e) => {
+                filterDate.classList.add('hidden');
+                filterMonth.classList.add('hidden');
+                filterClient.classList.add('hidden');
+                
+                if (e.target.value === 'daily') filterDate.classList.remove('hidden');
+                else if (e.target.value === 'monthly') filterMonth.classList.remove('hidden');
+                else if (e.target.value === 'client') filterClient.classList.remove('hidden');
+                
+                renderEntries(entries);
+            });
+
+            filterDate.addEventListener('change', () => renderEntries(entries));
+            filterMonth.addEventListener('change', () => renderEntries(entries));
+            filterClient.addEventListener('input', () => renderEntries(entries));
+
+            // CSV Download
+            downloadCsvButton.addEventListener('click', () => {
+                const filter = filterType.value;
+                let filteredEntries = entries;
+                let filename = 'finance_entries_all.csv';
+
+                if (filter === 'daily' && filterDate.value) {
+                    filteredEntries = entries.filter(entry => {
+                        const entryDate = new Date(entry.startDate);
+                        return entryDate.toISOString().split('T')[0] === filterDate.value;
+                    });
+                    filename = `finance_entries_${filterDate.value}.csv`;
+                } else if (filter === 'monthly' && filterMonth.value) {
+                    const [year, month] = filterMonth.value.split('-');
+                    filteredEntries = entries.filter(entry => {
+                        const entryDate = new Date(entry.startDate);
+                        return entryDate.getFullYear() === parseInt(year) && 
+                               entryDate.getMonth() === parseInt(month) - 1;
+                    });
+                    filename = `finance_entries_${filterMonth.value}.csv`;
+                } else if (filter === 'client' && filterClient.value) {
+                    filteredEntries = entries.filter(entry => entry.name.toLowerCase().includes(filterClient.value.toLowerCase()));
+                    filename = `finance_entries_${filterClient.value}.csv`;
+                }
+
+                const headers = ['Name', 'Daily Payment', 'Start Date'];
+                const csvRows = [headers.join(',')];
+                filteredEntries.forEach(entry => {
+                    const row = [
+                        `"${entry.name.replace(/"/g, '""')}"`,
+                        entry.dailyPayment.toFixed(2),
+                        entry.startDate
+                    ];
+                    csvRows.push(row.join(','));
+                });
+
+                const csvContent = csvRows.join('\n');
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = filename;
+                link.click();
+                URL.revokeObjectURL(link.href);
+            });
+
+            // PDF Download
+            downloadPdfButton.addEventListener('click', () => {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                const filter = filterType.value;
+                let filteredEntries = entries;
+                let title = 'Finance Report - All Entries';
+                let filename = 'finance_report_all.pdf';
+
+                if (filter === 'daily' && filterDate.value) {
+                    filteredEntries = entries.filter(entry => {
+                        const entryDate = new Date(entry.startDate);
+                        return entryDate.toISOString().split('T')[0] === filterDate.value;
+                    });
+                    title = `Finance Report - Daily (${filterDate.value})`;
+                    filename = `finance_report_${filterDate.value}.pdf`;
+                } else if (filter === 'monthly' && filterMonth.value) {
+                    const [year, month] = filterMonth.value.split('-');
+                    filteredEntries = entries.filter(entry => {
+                        const entryDate = new Date(entry.startDate);
+                        return entryDate.getFullYear() === parseInt(year) && 
+                               entryDate.getMonth() === parseInt(month) - 1;
+                    });
+                    title = `Finance Report - Monthly (${month}/${year})`;
+                    filename = `finance_report_${filterMonth.value}.pdf`;
+                } else if (filter === 'client' && filterClient.value) {
+                    filteredEntries = entries.filter(entry => entry.name.toLowerCase().includes(filterClient.value.toLowerCase()));
+                    title = `Finance Report - Client ${filterClient.value}`;
+                    filename = `finance_report_${filterClient.value}.pdf`;
+                }
+
+                const margin = 15;
+                let yPosition = 20;
+
+                // Header
+                doc.setFontSize(18);
+                doc.setFont('helvetica', 'bold');
+                doc.text(title, margin, yPosition);
+                yPosition += 15;
+
+                // Summary
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'normal');
+                doc.text(`Generated: ${new Date().toLocaleDateString()}`, margin, yPosition);
+                yPosition += 8;
+                doc.text(`Total Entries: ${filteredEntries.length}`, margin, yPosition);
+                yPosition += 15;
+
+                // Table Headers
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Name', margin, yPosition);
+                doc.text('Daily Payment', margin + 70, yPosition);
+                doc.text('Start Date', margin + 120, yPosition);
+                yPosition += 8;
+
+                // Table Rows
+                doc.setFont('helvetica', 'normal');
+                filteredEntries.forEach((entry) => {
+                    if (yPosition > 270) {
+                        doc.addPage();
+                        yPosition = 20;
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('Name', margin, yPosition);
+                        doc.text('Daily Payment', margin + 70, yPosition);
+                        doc.text('Start Date', margin + 120, yPosition);
+                        yPosition += 8;
+                        doc.setFont('helvetica', 'normal');
+                    }
+
+                    const payment = Number(entry.dailyPayment) || 0;
+                    doc.text(entry.name.substring(0, 15), margin, yPosition);
+                    doc.text(`₹${payment.toFixed(2)}`, margin + 70, yPosition);
+                    doc.text(new Date(entry.startDate).toISOString().split('T')[0], margin + 120, yPosition);
+                    yPosition += 8;
+                });
+
+                // Calculate and Display Total
+                const totalPayment = filteredEntries.reduce((sum, entry) => sum + (Number(entry.dailyPayment) || 0), 0);
+                doc.setFont('helvetica', 'bold');
+                doc.text(`Total Daily Payment: ₹${totalPayment.toFixed(2)}`, margin, yPosition + 10);
+
+                // Footer
+                const pageCount = doc.internal.getNumberOfPages();
+                for (let i = 1; i <= pageCount; i++) {
+                    doc.setPage(i);
+                    doc.setFontSize(8);
+                    doc.setFont('helvetica', 'italic');
+                    doc.text(`Page ${i} of ${pageCount} | Generated by Finance Dashboard`, margin, 290);
+                }
+
+                doc.save(filename);
+                alert(`PDF Report "${title}" downloaded successfully!`);
+            });
+
+            logoutButton.addEventListener('click', () => {
+                dashboardSection.classList.add('hidden');
+                loginSection.classList.remove('hidden');
+                loginForm.classList.remove('hidden');
+                otpSection.classList.add('hidden');
+                clearInterval(otpTimeout);
+                otpInput.value = '';
+                otpMessage.textContent = '';
+                otpTimer.textContent = '';
+                resendOtpButton.disabled = true;
+                localStorage.removeItem('otp');
+                localStorage.removeItem('otpTimestamp');
+                filterType.value = 'all';
+                filterDate.classList.add('hidden');
+                filterMonth.classList.add('hidden');
+                filterClient.classList.add('hidden');
+                totalElement.textContent = '';
+            });
+        });
+    </script>
+</body>
+</html>
